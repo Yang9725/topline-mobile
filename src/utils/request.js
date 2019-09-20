@@ -4,6 +4,9 @@
 import axios from 'axios'
 import JSONbig from 'json-bigint'
 
+// 使用拦截器统一添加token
+import store from '@/store'
+
 // 创建 axios 实例
 // axios.create 的作用是克隆一个 axios 实例，它的作用和 axios 是一样的
 // 假如一个应用中有多个不同的后台接口路径
@@ -30,6 +33,24 @@ request.defaults.transformResponse = [function (data) {
 // 请求拦截器
 // 响应拦截器
 // 。。。。
+request.interceptors.request.use(function (config) {
+  console.log('拦截器')
+  const { user } = store.state
+  if (user) {
+    config.headers.Authorization = `Bearer ${user.token}`
+  }
+  return config
+}, function (error) {
+  return Promise.reject(error)
+})
 
+/**
+*响应拦截器
+*/
+request.interceptors.response.use(function (response) {
+  return response
+}, function (error) {
+  return Promise.reject(error)
+})
 // 导出请求对象
 export default request
