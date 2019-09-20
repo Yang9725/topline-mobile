@@ -10,7 +10,20 @@
         :title="channel.name"
         v-for="channel in channels"
         :key="channel.id"
-      >{{ channel.name }}</van-tab>
+      >
+
+      <van-list
+      v-model="loading"
+      :finished="finished"
+      finished-text="没有更多了"
+      @load="onLoad">
+      <van-cell
+      v-for="item in list"
+      :key="item"
+      :title="item" />
+      </van-list>
+
+      </van-tab>
     </van-tabs>
     <!-- /频道列表 -->
 
@@ -27,7 +40,10 @@ export default {
   data () {
     return {
       active: 2, // 控制当前激活的标签页
-      channels: [] // 频道列表
+      channels: [], // 频道列表
+      list: [],
+      loading: false,
+      finished: false
     }
   },
 
@@ -39,11 +55,30 @@ export default {
     async loadAllChannels () {
       const { data } = await getAllChannels()
       this.channels = data.data.channels
+    },
+    onLoad () {
+      setTimeout(() => {
+        for (let i = 0; i < 10; i++) {
+          this.list.push(this.list.length + 1)
+        }
+        this.loading = false
+
+        if (this.list.length >= 40) {
+          this.finished = true
+        }
+      }, 500)
     }
   }
 }
 </script>
 
-<style>
+<style lang="less">
+.home{
+  .van-tabs {
+    .van-tabs_content {
+      margin-bottom: 50px;
+    }
+  }
+}
 
 </style>

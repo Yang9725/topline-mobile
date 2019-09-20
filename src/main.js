@@ -23,7 +23,8 @@ import {
   Tabbar,
   TabbarItem,
   Tab,
-  Tabs
+  Tabs,
+  List
 } from 'vant'
 
 Vue
@@ -37,6 +38,7 @@ Vue
   .use(TabbarItem)
   .use(Tab)
   .use(Tabs)
+  .use(List)
 
 // loop over all rules
 for (let rule in rules) {

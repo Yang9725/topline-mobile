@@ -34,7 +34,6 @@ request.defaults.transformResponse = [function (data) {
 // 响应拦截器
 // 。。。。
 request.interceptors.request.use(function (config) {
-  console.log('拦截器')
   const { user } = store.state
   if (user) {
     config.headers.Authorization = `Bearer ${user.token}`
