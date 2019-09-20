@@ -19,7 +19,11 @@ import {
   CellGroup,
   NavBar,
   Field,
-  Toast
+  Toast,
+  Tabbar,
+  TabbarItem,
+  Tab,
+  Tabs
 } from 'vant'
 
 Vue
@@ -29,6 +33,10 @@ Vue
   .use(NavBar)
   .use(Field)
   .use(Toast)
+  .use(Tabbar)
+  .use(TabbarItem)
+  .use(Tab)
+  .use(Tabs)
 
 // loop over all rules
 for (let rule in rules) {
