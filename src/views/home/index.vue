@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <!-- 导航栏 -->
-    <van-nav-bar title="首页" />
+    <van-nav-bar fixed title="首页" />
     <!-- /导航栏 -->
 
     <!-- 频道列表 -->
@@ -56,7 +56,7 @@
                 <van-grid :border="false" :column-num="3">
                   <van-grid-item v-for="(img, index) in article.cover.images" :key="index">
                     <!-- Vant 提供的一个显示图片组件 -->
-                    <van-image height="80" :src="img" />
+                    <van-image height="80" :src="img" lazy-load />
                   </van-grid-item>
                 </van-grid>
                 <!-- /文章图片 -->
@@ -66,7 +66,7 @@
                   <div class="meta">
                     <span>{{ article.aut_name }}</span>
                     <span>{{ article.comm_count }}评论</span>
-                    <span>{{ article.pubdate }}</span>
+                    <span>{{ article.pubdate | relativeTime }}</span>
                   </div>
                 </div>
                 <!-- 描述信息 -->
@@ -205,11 +205,19 @@ export default {
 }
 </script>
 
-<style lang="less">
+<style lang="less" scoped>
 .home {
   .van-tabs {
-    .van-tabs__content {
+    /deep/ .van-tabs__content {
       margin-bottom: 50px;
+      margin-top: 90px;
+    }
+    /deep/ .van-tabs__wrap {
+      position: fixed;
+      top: 46px;
+      z-index: 2;
+      left: 0;
+      right: 0;
     }
   }
 

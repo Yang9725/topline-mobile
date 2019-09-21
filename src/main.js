@@ -11,6 +11,7 @@ import {
 } from 'vee-validate'
 import * as rules from 'vee-validate/dist/rules' // 加载所有的验证规则
 import zhCN from 'vee-validate/dist/locale/zh_CN' //
+import { relativeTime } from './utils/date'
 
 // 按需注册 Vant 组件
 import {
@@ -28,8 +29,14 @@ import {
   PullRefresh,
   Grid,
   GridItem,
-  Image
+  Image,
+  Lazyload
 } from 'vant'
+
+// 为了方便的能在模板中使用 relativeTime 方法
+// 所以这里将其注册为全局过滤器
+// 过滤器就是一个函数：接收一个参数，返回一个结果
+Vue.filter('relativeTime', relativeTime)
 
 Vue
   .use(Button)
@@ -47,6 +54,7 @@ Vue
   .use(Grid)
   .use(GridItem)
   .use(Image)
+  .use(Lazyload)
 
 // loop over all rules
 for (let rule in rules) {
