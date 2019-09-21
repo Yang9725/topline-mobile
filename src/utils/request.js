@@ -3,8 +3,9 @@
  */
 import axios from 'axios'
 import JSONbig from 'json-bigint'
-
-// 使用拦截器统一添加token
+// 《使用拦截器统一添加 token》2. 加载容器
+// 在非组件模块中访问 Vuex 容器，那就谁用谁就直接加载
+// 这里加载得到的 store 和组件中的 $store 是一个东西
 import store from '@/store'
 
 // 创建 axios 实例
@@ -33,23 +34,40 @@ request.defaults.transformResponse = [function (data) {
 // 请求拦截器
 // 响应拦截器
 // 。。。。
+
+/**
+ * 请求拦截器
+ * 使用拦截器统一添加 token
+ */
+// 《使用拦截器统一添加 token》1. 添加拦截器
+// 注意：为 request 添加拦截器
 request.interceptors.request.use(function (config) {
+  // Do something before request is sent
+
+  // 统一在请求头中添加 token，名字，数据
+  // // 《使用拦截器统一添加 token》3. 添加 token
   const { user } = store.state
   if (user) {
     config.headers.Authorization = `Bearer ${user.token}`
   }
   return config
 }, function (error) {
+  // Do something with request error
   return Promise.reject(error)
 })
 
 /**
-*响应拦截器
-*/
+ * 响应拦截器
+ */
 request.interceptors.response.use(function (response) {
+  // Any status code that lie within the range of 2xx cause this function to trigger
+  // Do something with response data
   return response
 }, function (error) {
+  // Any status codes that falls outside the range of 2xx cause this function to trigger
+  // Do something with response error
   return Promise.reject(error)
 })
+
 // 导出请求对象
 export default request

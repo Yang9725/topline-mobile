@@ -20,6 +20,10 @@
       ValidationObserver 组件会渲染成一个 form 表单
       可以通过 ref 调用这个组件的方法：validate 来进行 js 验证
      -->
+
+    <!--
+      为什么这里原来的 van-cell-group 移除，换成了 ValidationObserver
+     -->
     <ValidationObserver tag="form" ref="loginForm">
       <!--
         把需要验证的字段使用 ValidationProvider 包裹起来
@@ -57,7 +61,6 @@
 
 <script>
 import { login } from '@/api/user'
-import request from '@/utils/request'
 
 export default {
   name: 'LoginIndex',
@@ -70,14 +73,7 @@ export default {
       isLoginLoading: false // 控制登录按钮的 loading 状态
     }
   },
-  created () {
-    request({
-      method: 'GET',
-      url: '/app/v1_0/channels'
-    }).then(res => {
-      console.log(res.data)
-    })
-  },
+
   methods: {
     async onLogin () {
       // 获取表单数据

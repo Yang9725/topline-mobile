@@ -34,19 +34,47 @@
             初始化的时候调用
             加载更多的时候调用
          -->
-        <van-list
-          v-model="channel.loading"
-          :finished="channel.finished"
-          finished-text="没有更多了"
-          @load="onLoad"
-        >
-          <!-- 具体的内容 -->
-          <van-cell
-            v-for="article in channel.articles"
-            :key="article.art_id.toString()"
-            :title="article.title"
-          />
-        </van-list>
+        <!--
+          v-model="isLoading" 控制下拉刷新的 loading 状态
+          @refresh 当下拉刷新的时候，会触发组件的 refresh 方法
+         -->
+        <van-pull-refresh v-model="channel.pullDownLoading" @refresh="onRefresh">
+          <van-list
+            v-model="channel.loading"
+            :finished="channel.finished"
+            finished-text="没有更多了"
+            @load="onLoad"
+          >
+            <!-- 具体的内容 -->
+            <van-cell
+              v-for="article in channel.articles"
+              :key="article.art_id.toString()"
+              :title="article.title"
+            >
+              <div slot="label">
+                <!-- 文章图片 -->
+                <van-grid :border="false" :column-num="3">
+                  <van-grid-item v-for="(img, index) in article.cover.images" :key="index">
+                    <!-- Vant 提供的一个显示图片组件 -->
+                    <van-image height="80" :src="img" />
+                  </van-grid-item>
+                </van-grid>
+                <!-- /文章图片 -->
+
+                <!-- 描述信息 -->
+                <div class="article-info">
+                  <div class="meta">
+                    <span>{{ article.aut_name }}</span>
+                    <span>{{ article.comm_count }}评论</span>
+                    <span>{{ article.pubdate }}</span>
+                  </div>
+                </div>
+                <!-- 描述信息 -->
+              </div>
+            </van-cell>
+            <!-- /具体的内容 -->
+          </van-list>
+        </van-pull-refresh>
         <!-- /文章列表 -->
       </van-tab>
     </van-tabs>
@@ -88,11 +116,15 @@ export default {
         channel.loading = false // 频道的上拉加载更多的 loading 状态
         channel.finished = false // 频道的加载结束的状态
         channel.timestamp = null // 用于获取下一页数据的时间戳（页码）
+        channel.pullDownLoading = false // 频道的下拉刷新 loading 状态
       })
 
       this.channels = data.data.channels
     },
 
+    /**
+     * 上拉加载更多处理函数
+     */
     async onLoad () {
       // 1. 请求加载文章列表
       const currentChannel = this.currentChannel
@@ -118,6 +150,28 @@ export default {
         // 还有数据，将本次得到的 preTimestamp 存储到当前频道，用于加载下一页数据
         currentChannel.timestamp = preTimestamp
       }
+    },
+
+    /**
+     * 下拉刷新处理函数
+     */
+    async onRefresh () {
+      // 1. 请求获取文章列表
+      const currentChannel = this.currentChannel
+      const { data } = await getArticles({
+        channelId: currentChannel.id,
+        timestamp: Date.now(),
+        withTop: 1
+      })
+
+      // 2. 将数据添加到当前频道.article数据中（顶部）
+      currentChannel.articles.unshift(...data.data.results)
+
+      // 3. 关闭当前频道下拉刷新的 loading 状态
+      currentChannel.pullDownLoading = false
+
+      // 4. 提示用户刷新成功
+      this.$toast('刷新成功')
     }
 
     // onLoad () {
@@ -156,6 +210,12 @@ export default {
   .van-tabs {
     .van-tabs__content {
       margin-bottom: 50px;
+    }
+  }
+
+  .article-info {
+    .meta span {
+      margin-right: 10px;
     }
   }
 }

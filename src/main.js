@@ -24,7 +24,11 @@ import {
   TabbarItem,
   Tab,
   Tabs,
-  List
+  List,
+  PullRefresh,
+  Grid,
+  GridItem,
+  Image
 } from 'vant'
 
 Vue
@@ -39,6 +43,10 @@ Vue
   .use(Tab)
   .use(Tabs)
   .use(List)
+  .use(PullRefresh)
+  .use(Grid)
+  .use(GridItem)
+  .use(Image)
 
 // loop over all rules
 for (let rule in rules) {
