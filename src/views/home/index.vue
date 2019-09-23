@@ -93,24 +93,40 @@
       :style="{ height: '95%' }"
       round
     >
+      <!-- 关闭按钮 -->
+      <van-cell icon="cross" :border="false" @click="isChannelEditShow = false" />
+      <!-- /关闭按钮 -->
+
       <!-- 我的频道 -->
       <div>
-        <van-cell title="我的频道">
-          <van-button type="danger" size="mini">编辑</van-button>
+        <van-cell title="我的频道" :border="false">
+          <van-button
+            type="danger"
+            size="mini"
+            @click="isEdit = !isEdit"
+          >{{ isEdit ? '完成' : '编辑' }}</van-button>
         </van-cell>
         <van-grid :gutter="10">
           <van-grid-item
-            v-for="channel in channels"
+            v-for="(channel, index) in channels"
             :key="channel.id"
             :text="channel.name"
-          />
+            @click="onUserChannelClick(channel, index)"
+          >
+            <van-icon
+              v-show="isEdit"
+              class="close-icon"
+              slot="icon"
+              name="close"
+            />
+          </van-grid-item>
         </van-grid>
       </div>
       <!-- /我的频道 -->
 
       <!-- 频道推荐 -->
       <div>
-        <van-cell title="频道推荐">
+        <van-cell title="频道推荐" :border="false">
         </van-cell>
         <van-grid :gutter="10">
           <van-grid-item
@@ -128,7 +144,12 @@
 </template>
 
 <script>
-import { getUserOrDefaultChannels, getAllChannels } from '@/api/channel'
+import {
+  getUserOrDefaultChannels,
+  getAllChannels,
+  resetUserChannels,
+  deleteUserChannel
+} from '@/api/channel'
 import { getArticles } from '@/api/article'
 import { mapState } from 'vuex'
 import { getItem, setItem } from '@/utils/storage'
@@ -140,7 +161,8 @@ export default {
       active: 0, // 控制当前激活的标签页
       channels: [], // 频道列表
       isChannelEditShow: true, // 控制编辑频道的显示和隐藏
-      allChannels: []
+      allChannels: [],
+      isEdit: false
     }
   },
 
@@ -200,12 +222,20 @@ export default {
       }
 
       // 为每一个频道初始化一个成员 articles 用来存储该频道的文章列表
+      // channels.forEach(channel => {
+      //   channel.articles = [] // 频道的文章列表
+      //   channel.loading = false // 频道的上拉加载更多的 loading 状态
+      //   channel.finished = false // 频道的加载结束的状态
+      //   channel.timestamp = null // 用于获取下一页数据的时间戳（页码）
+      //   channel.pullDownLoading = false // 频道的下拉刷新 loading 状态
+      // })
+
       channels.forEach(channel => {
-        channel.articles = [] // 频道的文章列表
-        channel.loading = false // 频道的上拉加载更多的 loading 状态
-        channel.finished = false // 频道的加载结束的状态
-        channel.timestamp = null // 用于获取下一页数据的时间戳（页码）
-        channel.pullDownLoading = false // 频道的下拉刷新 loading 状态
+        // channel: { id: xxx, name: xxx }
+        // extendChannelData() { articles: xxx, loading: xxx..... }
+        const extendData = this.extendChannelData()
+        // 把 extendData 合并到 channel 中
+        Object.assign(channel, extendData)
       })
 
       this.channels = channels
@@ -268,17 +298,96 @@ export default {
      */
     async loadAllChannels () {
       const { data } = await getAllChannels()
-      this.allChannels = data.data.channels
+      const channels = data.data.channels
+
+      // 为每一个频道初始化一个成员 articles 用来存储该频道的文章列表
+      // channels.forEach(channel => {
+      //   channel.articles = [] // 频道的文章列表
+      //   channel.loading = false // 频道的上拉加载更多的 loading 状态
+      //   channel.finished = false // 频道的加载结束的状态
+      //   channel.timestamp = null // 用于获取下一页数据的时间戳（页码）
+      //   channel.pullDownLoading = false // 频道的下拉刷新 loading 状态
+      // })
+
+      channels.forEach(channel => {
+        // channel: { id: xxx, name: xxx }
+        // extendChannelData() { articles: xxx, loading: xxx..... }
+        const extendData = this.extendChannelData()
+        // 把 extendData 合并到 channel 中
+        Object.assign(channel, extendData)
+      })
+
+      this.allChannels = channels
     },
 
-    onAddChannel (channel) {
+    /**
+     * 添加频道处理函数
+     */
+    async onAddChannel (channel) {
+      // 添加到我的频道
       this.channels.push(channel)
+
       // 持久化
       if (this.user) {
         // 已登录：请求保存到后端
+        // [ { id: 频道id, seq: 序号 }, { id: 频道id, seq: 序号 }, ]
+        const channels = []
+
+        // 处理提取要重置的频道列表
+        // this.channels.slice(1) 不包括第1个频道（推荐）
+        this.channels.slice(1).forEach((item, index) => {
+          channels.push({
+            id: item.id,
+            seq: index + 2
+          })
+        })
+
+        // 请求重置
+        await resetUserChannels(channels)
       } else {
         // 未登录：本地存储
         setItem('channels', this.channels)
+      }
+    },
+
+    /**
+     * 我的频道中的点击处理函数
+     */
+    async onUserChannelClick (channel, index) {
+      // 如果是编辑状态，删除频道
+      if (this.isEdit) {
+        // 删除频道
+        this.channels.splice(index, 1) // 将数据从视图中移除
+
+        // 持久化
+        if (this.user) {
+          // 已登录，请求删除
+          await deleteUserChannel(channel.id)
+        } else {
+          // 未登录，删除本地存储
+          // 注意：本地存储中的数据无法像操作 js 数据成员一样来修改
+          //      如果想要修改，则重新存储实现修改
+          setItem('channels', this.channels)
+        }
+      } else {
+        // 如果是非编辑状态，则切换频道
+        // 让频道列表切换到点击的这个频道
+        this.active = index
+        // 关闭弹层
+        this.isChannelEditShow = false
+      }
+    },
+
+    /**
+     * 自定义扩展频道数据
+     */
+    extendChannelData () {
+      return {
+        articles: [],
+        loading: false,
+        finished: false,
+        timestamp: null,
+        pullDownLoading: false
       }
     }
   }
@@ -314,6 +423,12 @@ export default {
     align-items: center;
     background-color: #fff;
     opacity: 0.8;
+  }
+
+  .close-icon {
+    position: absolute;
+    top: -5px;
+    right: -5px;
   }
 }
 </style>

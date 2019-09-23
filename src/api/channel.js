@@ -21,3 +21,30 @@ export const getUserOrDefaultChannels = () => {
     url: '/app/v1_0/user/channels'
   })
 }
+
+/**
+ * 新增用户频道（接口暂时有问题）
+ */
+
+/**
+ * 重置用户频道列表
+ */
+export const resetUserChannels = channels => {
+  return request({
+    method: 'PUT',
+    url: '/app/v1_0/user/channels',
+    data: {
+      channels
+    }
+  })
+}
+
+/**
+ * 删除用户频道
+ */
+export const deleteUserChannel = channelId => {
+  return request({
+    method: 'DELETE',
+    url: `/app/v1_0/user/channels/${channelId}`
+  })
+}
