@@ -77,41 +77,130 @@
         </van-pull-refresh>
         <!-- /文章列表 -->
       </van-tab>
+
+      <!-- 面包按钮 -->
+      <div slot="nav-right" class="wap-nav" @click="isChannelEditShow = true">
+        <van-icon name="wap-nav" size="24" />
+      </div>
+      <!-- /面包按钮 -->
     </van-tabs>
     <!-- /频道列表 -->
+
+    <!-- 频道管理 -->
+    <van-popup
+      v-model="isChannelEditShow"
+      position="bottom"
+      :style="{ height: '95%' }"
+      round
+    >
+      <!-- 我的频道 -->
+      <div>
+        <van-cell title="我的频道">
+          <van-button type="danger" size="mini">编辑</van-button>
+        </van-cell>
+        <van-grid :gutter="10">
+          <van-grid-item
+            v-for="channel in channels"
+            :key="channel.id"
+            :text="channel.name"
+          />
+        </van-grid>
+      </div>
+      <!-- /我的频道 -->
+
+      <!-- 频道推荐 -->
+      <div>
+        <van-cell title="频道推荐">
+        </van-cell>
+        <van-grid :gutter="10">
+          <van-grid-item
+            v-for="channel in remainingChannels"
+            :key="channel.id"
+            :text="channel.name"
+            @click="onAddChannel(channel)"
+          />
+        </van-grid>
+      </div>
+      <!-- /频道推荐 -->
+    </van-popup>
+    <!-- /频道管理 -->
   </div>
 </template>
 
 <script>
-import { getAllChannels } from '@/api/channel'
+import { getUserOrDefaultChannels, getAllChannels } from '@/api/channel'
 import { getArticles } from '@/api/article'
+import { mapState } from 'vuex'
+import { getItem, setItem } from '@/utils/storage'
 
 export default {
   name: 'HomeIndex',
   data () {
     return {
       active: 0, // 控制当前激活的标签页
-      channels: [] // 频道列表
+      channels: [], // 频道列表
+      isChannelEditShow: true, // 控制编辑频道的显示和隐藏
+      allChannels: []
     }
   },
 
   computed: {
+    ...mapState(['user']),
     currentChannel () {
       // active 是动态的
       return this.channels[this.active]
+    },
+
+    /**
+     * 获取剩余的频道
+     */
+    remainingChannels () {
+      // 剩余频道 = 所有频道 - 我的频道
+      const channels = []
+      this.allChannels.forEach(channel => {
+        // 如果我的频道不包含当前遍历频道，那它就是剩余的频道
+        // find 方法：遍历数组，查找满足 item.id === channel.id 的元素，找到就返回该元素
+        // 如果直到遍历结束都没有，则返回 undefined
+        const index = this.channels.findIndex(item => item.id === channel.id)
+        if (index === -1) {
+          channels.push(channel)
+        }
+      })
+      return channels
     }
   },
 
   created () {
+    this.loadUserOrDefaultChannels()
     this.loadAllChannels()
   },
 
   methods: {
-    async loadAllChannels () {
-      const { data } = await getAllChannels()
+    async loadUserOrDefaultChannels () {
+      // 开始的时候还没有考虑频道管理这件事儿，所以为了简单，这里直接获取了所有频道列表
+      // const { data } = await getAllChannels()
+
+      // 有了频道管理这个业务
+      let channels = []
+      // 1. 如果用户已登录，则请求获取后端存储的用户频道列表
+      if (this.user) {
+        const { data } = await getUserOrDefaultChannels()
+        channels = data.data.channels
+      } else {
+        // 2. 如果用户没有登录，则查看本地存储是否有频道列表
+        const localChannels = getItem('channels')
+        // 2.1 如果本地存储有，则获取使用
+        if (localChannels) {
+          channels = localChannels
+        } else {
+          // 2.2 如果本地存储没有，则请求获取默认推荐的频道列表
+          const { data } = await getUserOrDefaultChannels()
+          channels = data.data.channels
+        }
+      }
 
       // 为每一个频道初始化一个成员 articles 用来存储该频道的文章列表
-      data.data.channels.forEach(channel => {
+      channels.forEach(channel => {
         channel.articles = [] // 频道的文章列表
         channel.loading = false // 频道的上拉加载更多的 loading 状态
         channel.finished = false // 频道的加载结束的状态
@@ -119,7 +208,7 @@ export default {
         channel.pullDownLoading = false // 频道的下拉刷新 loading 状态
       })
 
-      this.channels = data.data.channels
+      this.channels = channels
     },
 
     /**
@@ -172,35 +261,26 @@ export default {
 
       // 4. 提示用户刷新成功
       this.$toast('刷新成功')
+    },
+
+    /**
+     * 获取所有频道
+     */
+    async loadAllChannels () {
+      const { data } = await getAllChannels()
+      this.allChannels = data.data.channels
+    },
+
+    onAddChannel (channel) {
+      this.channels.push(channel)
+      // 持久化
+      if (this.user) {
+        // 已登录：请求保存到后端
+      } else {
+        // 未登录：本地存储
+        setItem('channels', this.channels)
+      }
     }
-
-    // onLoad () {
-    //   console.log('onLoad called')
-    //   // 异步更新数据
-    //   setTimeout(() => {
-    //     for (let i = 0; i < 10; i++) {
-    //       // 0 1 1
-    //       // 1 1 2
-    //       // this.list.push(this.list.length + 1)
-    //       // 将数据添加到当前频道.文章列表中
-    //       const articles = this.currentChannel.articles
-    //       articles.push(articles.length + 1)
-    //     }
-
-    //     // 本次数据加载完毕，关闭本次的 loading 状态
-    //     this.currentChannel.loading = false
-
-    //     // 本次 loading 完毕以后，列表数据也渲染到视图了
-    //     // 列表组件会判断当前视图中的数据是否够一屏
-    //     // 如果不够一屏，它会继续调用 onLoad
-    //     // 每次 onLoad 的时候，它会自动把 loading 设置为 true
-
-    //     // 数据全部加载完成，将 finished 设置为 true，列表就不再去 onLoad 了
-    //     if (this.currentChannel.articles.length >= 40) {
-    //       this.currentChannel.finished = true
-    //     }
-    //   }, 2000)
-    // }
   }
 }
 </script>
@@ -225,6 +305,15 @@ export default {
     .meta span {
       margin-right: 10px;
     }
+  }
+
+  .wap-nav {
+    position: sticky;
+    right: 0;
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    opacity: 0.8;
   }
 }
 </style>

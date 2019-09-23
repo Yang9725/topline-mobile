@@ -30,7 +30,9 @@ import {
   Grid,
   GridItem,
   Image,
-  Lazyload
+  Lazyload,
+  Popup,
+  Icon
 } from 'vant'
 
 // 为了方便的能在模板中使用 relativeTime 方法
@@ -55,6 +57,8 @@ Vue
   .use(GridItem)
   .use(Image)
   .use(Lazyload)
+  .use(Popup)
+  .use(Icon)
 
 // loop over all rules
 for (let rule in rules) {

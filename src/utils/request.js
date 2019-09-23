@@ -48,6 +48,7 @@ request.interceptors.request.use(function (config) {
   // // 《使用拦截器统一添加 token》3. 添加 token
   const { user } = store.state
   if (user) {
+    // 注意：Bearer 后面有一个空格，这是后端要求的数据格式
     config.headers.Authorization = `Bearer ${user.token}`
   }
   return config
