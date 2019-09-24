@@ -6,7 +6,7 @@
         v-model="searchText"
         placeholder="请输入搜索关键词"
         show-action
-        @search="onSearch"
+        @search="onSearch(searchText)"
         @cancel="onCancel"
       />
     </form>
@@ -14,11 +14,7 @@
 
     <!-- 联想建议 -->
     <van-cell-group>
-      <van-cell
-        icon="search"
-        v-for="item in suggestions"
-        :key="item"
-      >
+      <van-cell icon="search" v-for="item in suggestions" :key="item" @click="onSearch(item)">
         <!-- <span style="color: red">hello</span> world -->
 
         <!-- 如果绑定的数据中有 HTML 标签，则默认当做字符串渲染 -->
@@ -42,18 +38,10 @@
       <van-cell title="历史记录">
         <span style="margin-right: 10px;">全部删除</span>
         <span>完成</span>
-        <van-icon
-          slot="right-icon"
-          name="delete"
-          style="line-height: inherit;"
-        />
+        <van-icon slot="right-icon" name="delete" style="line-height: inherit;" />
       </van-cell>
       <van-cell title="hello" v-for="value in 5" :key="value">
-        <van-icon
-          slot="right-icon"
-          name="close"
-          style="line-height: inherit;"
-        />
+        <van-icon slot="right-icon" name="close" style="line-height: inherit;" />
       </van-cell>
     </van-cell-group>
     <!-- /历史记录 -->
@@ -101,12 +89,28 @@ export default {
   },
 
   methods: {
-    onSearch () {},
+
     onCancel () {},
+
+    onSearch (q) {
+      if (!q.trim().length) {
+        return
+      }
+
+      this.$router.push({
+        name: 'search-result',
+        params: {
+          q
+        }
+      })
+    },
 
     highLight (str) {
       const reg = new RegExp(this.searchText, 'gi')
-      return str.replace(reg, `<span style="color: red;">${this.searchText}</span>`)
+      return str.replace(
+        reg,
+        `<span style="color: red;">${this.searchText}</span>`
+      )
     }
   }
 }
