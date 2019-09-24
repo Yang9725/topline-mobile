@@ -204,7 +204,10 @@ export default {
   },
 
   created () {
+    // 获取用户频道
     this.loadUserOrDefaultChannels()
+
+    // 获取所有频道（用于计算剩余频道）
     this.loadAllChannels()
   },
 

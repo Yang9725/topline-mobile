@@ -1,23 +1,29 @@
 <template>
-  <div>
+  <div class="serach-result">
+    <!-- 导航栏 -->
     <van-nav-bar
+      :title="`${$route.params.q}的搜索结果`"
       left-arrow
-      :title="q + ' 的搜索结果'"
-      @click-left="$router.back()"
       fixed
+      @click-left="$router.back()"
     />
+    <!-- /导航栏 -->
+
+    <!-- 文章列表 -->
     <van-list
+      class="article-list"
       v-model="loading"
       :finished="finished"
       finished-text="没有更多了"
       @load="onLoad"
     >
       <van-cell
-        v-for="item in articles"
-        :key="item.art_id.toString()"
-        :title="item.title"
+        v-for="article in list"
+        :key="article.art_id.toString()"
+        :title="article.title"
       />
     </van-list>
+    <!-- /文章列表 -->
   </div>
 </template>
 
@@ -26,10 +32,9 @@ import { getSearch } from '@/api/search'
 
 export default {
   name: 'SearchResult',
-  props: ['q'],
   data () {
     return {
-      articles: [],
+      list: [],
       loading: false,
       finished: false,
       page: 1
@@ -38,37 +43,37 @@ export default {
 
   methods: {
     async onLoad () {
-      // 请求
+      // 1. 请求获取数据
       const { data } = await getSearch({
-        page: this.page,
-        per_page: 10,
+        page: this.page, // 页码
+        perPage: 20, // 每页大小
         q: this.$route.params.q
       })
-      // 将请求结果保存到当前组件中
+
+      // 2. 将请求结果保存到当前组件的 list 中
       const { results } = data.data
+      this.list.push(...results)
 
-      this.articles.push(...results)
-
-      // 判断是否已全部加载结束
-      // 如果没有，更新页码
-      // 如果已结束，则将finished 设置为 true , 不在onload
-      if (!results.length) {
-        // 设置数据全部加载结束，不再 onLoad
-        this.finished = true
-      } else {
-        // 让页码+1用于下一次请求
-        this.page++
-      }
-
-      // 关闭loading
+      // 3. 关闭 loading
       this.loading = false
+
+      // 4. 判断是否已全部加载结束
+      if (results.length) {
+        // 4.1 如果有，更新页码
+        this.page++
+      } else {
+        // 4.2 如果没有数据了，则将 finished 设置为 true，不再 onLoad
+        this.finished = true
+      }
     }
   }
 }
 </script>
 
-<style>
-.van-list {
-  margin-top: 46px;
+<style lang="less" scoped>
+.serach-result {
+  .article-list {
+    margin-top: 46px;
+  }
 }
 </style>
