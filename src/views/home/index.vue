@@ -1,7 +1,18 @@
 <template>
   <div class="home">
     <!-- 导航栏 -->
-    <van-nav-bar fixed title="首页" />
+    <van-nav-bar fixed>
+      <!-- 自定义标题内容 -->
+      <van-button
+        class="search-btn"
+        slot="title"
+        icon="search"
+        round
+        type="info"
+        size="small"
+        @click="$router.push('/search')"
+      >搜索</van-button>
+    </van-nav-bar>
     <!-- /导航栏 -->
 
     <!-- 频道列表 -->
@@ -160,7 +171,7 @@ export default {
     return {
       active: 0, // 控制当前激活的标签页
       channels: [], // 频道列表
-      isChannelEditShow: true, // 控制编辑频道的显示和隐藏
+      isChannelEditShow: false, // 控制编辑频道的显示和隐藏
       allChannels: [],
       isEdit: false
     }
@@ -429,6 +440,11 @@ export default {
     position: absolute;
     top: -5px;
     right: -5px;
+  }
+
+  .search-btn {
+    width: 100%;
+    background: #5babfb;
   }
 }
 </style>
