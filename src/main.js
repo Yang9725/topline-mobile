@@ -33,7 +33,8 @@ import {
   Lazyload,
   Popup,
   Icon,
-  Search
+  Search,
+  Loading
 } from 'vant'
 
 // 为了方便的能在模板中使用 relativeTime 方法
@@ -61,6 +62,7 @@ Vue
   .use(Popup)
   .use(Icon)
   .use(Search)
+  .use(Loading)
 
 // loop over all rules
 for (let rule in rules) {

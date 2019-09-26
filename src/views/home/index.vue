@@ -61,6 +61,12 @@
               v-for="article in channel.articles"
               :key="article.art_id.toString()"
               :title="article.title"
+              @click="$router.push({
+                name: 'article',
+                params: {
+                  articleId: article.art_id.toString()
+                }
+              })"
             >
               <div slot="label">
                 <!-- 文章图片 -->

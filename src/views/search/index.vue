@@ -59,12 +59,16 @@
         :key="item"
         @click="onSearch(item)"
       >
+        <!--
+          .stop 事件修饰符，阻止冒泡
+          参考文档：https://cn.vuejs.org/v2/guide/events.html#%E4%BA%8B%E4%BB%B6%E4%BF%AE%E9%A5%B0%E7%AC%A6
+         -->
         <van-icon
           slot="right-icon"
           name="close"
           style="line-height: inherit;"
           v-show="isDeleteShow"
-          @click="searchHistories.splice(index, 1)"
+          @click.stop="searchHistories.splice(index, 1)"
         />
       </van-cell>
     </van-cell-group>
@@ -135,6 +139,9 @@ export default {
   },
 
   methods: {
+    onCancel () {
+      this.$router.push('/')
+    },
     onSearch (q) {
       if (!q.trim().length) {
         return
@@ -172,7 +179,7 @@ export default {
         }
       })
     },
-    onCancel () {},
+    // onCancel () {},
 
     highLight (str) {
       const reg = new RegExp(this.searchText, 'gi')
