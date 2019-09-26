@@ -12,9 +12,9 @@ const router = new VueRouter({
   // 配置路由表
   routes: [
     {
-      name: 'search-result',
-      path: '/search/:q',
-      component: SearchResult
+      name: 'login',
+      path: '/login',
+      component: Login
     },
     {
       name: 'search',
@@ -22,9 +22,9 @@ const router = new VueRouter({
       component: Search
     },
     {
-      name: 'login',
-      path: '/login',
-      component: Login
+      name: 'search-result',
+      path: '/search/:q',
+      component: SearchResult
     },
     {
       // 嵌套路由如果有默认子路由，则不需要 name
