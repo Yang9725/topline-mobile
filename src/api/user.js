@@ -94,3 +94,22 @@ export const updateUserPhoto = file => {
     data: formData
   })
 }
+
+/**
+ * 更新用户基本信息
+ */
+export const updateUserProfile = ({
+  name,
+  gender,
+  birthday
+}) => {
+  return request({
+    method: 'PATCH',
+    url: '/app/v1_0/user/profile',
+    data: {
+      name, // 昵称
+      gender, // 性别
+      birthday // 生日
+    }
+  })
+}

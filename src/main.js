@@ -34,7 +34,10 @@ import {
   Popup,
   Icon,
   Search,
-  Loading
+  Loading,
+  Dialog,
+  ActionSheet,
+  DatetimePicker
 } from 'vant'
 
 // 为了方便的能在模板中使用 relativeTime 方法
@@ -63,6 +66,9 @@ Vue
   .use(Icon)
   .use(Search)
   .use(Loading)
+  .use(Dialog)
+  .use(ActionSheet)
+  .use(DatetimePicker)
 
 // loop over all rules
 for (let rule in rules) {

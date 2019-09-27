@@ -19,26 +19,91 @@
           :src="user.photo"
         />
       </van-cell>
-      <van-cell title="昵称" :value="user.name" is-link />
-      <van-cell title="性别" :value="user.gender === 1 ? '女' : '男'" is-link />
-      <van-cell title="生日" :value="user.birthday" is-link />
+      <van-cell
+        title="昵称"
+        :value="user.name"
+        is-link
+        @click="isEditNameShow = true"
+      />
+      <van-cell
+        title="性别"
+        :value="user.gender === 1 ? '女' : '男'"
+        is-link
+        @click="isEditGenderShow = true"
+      />
+      <van-cell
+        title="生日"
+        :value="user.birthday"
+        is-link
+        @click="isEditBirthdayShow = true"
+      />
     </van-cell-group>
     <!-- /用户信息 -->
 
     <!-- 头像上传触发的 file 类型的 input -->
     <input hidden type="file" ref="file">
     <!-- /头像上传触发的 file 类型的 input -->
+
+    <!-- 编辑用户昵称 -->
+    <van-dialog
+      v-model="isEditNameShow"
+      title="用户昵称"
+      show-cancel-button
+      @confirm="user.name = inputUserName"
+    >
+      <van-field
+        :value="user.name"
+        placeholder="请输入用户名"
+        @input="onUserNameInput"
+      />
+    </van-dialog>
+    <!-- 编辑用户昵称 -->
+
+    <!-- 编辑用户性别 -->
+    <van-action-sheet
+      v-model="isEditGenderShow"
+      :actions="[
+        { name: '男', value: 0 },
+        { name: '女', value: 1 }
+      ]"
+      cancel-text="取消"
+      @select="onGenderSelect"
+    />
+    <!-- /编辑用户性别 -->
+
+    <!-- 编辑用户生日 -->
+    <van-popup
+      v-model="isEditBirthdayShow"
+      position="bottom"
+      :style="{ height: '30%' }"
+    >
+      <van-datetime-picker
+        v-model="currentDate"
+        type="date"
+        :min-date="minDate"
+        @confirm="onDatetimeConfirm"
+        @cancel="isEditBirthdayShow = false"
+      />
+    </van-popup>
+    <!-- /编辑用户生日 -->
   </div>
 </template>
 
 <script>
-import { getProfile, updateUserPhoto } from '@/api/user'
+import { getProfile, updateUserPhoto, updateUserProfile } from '@/api/user'
+import { formatDate } from '@/utils/date'
 
 export default {
   name: 'UserIndex',
   data () {
     return {
-      user: {} // 用户个人资料
+      user: {}, // 用户个人资料
+      isEditNameShow: false, // 是否显示编辑昵称
+      inputUserName: '', // 存储编辑用户输入的内容
+      isEditGenderShow: false, // 是否显示编辑性别
+      isEditBirthdayShow: false,
+      minDate: new Date(1870, 1, 1),
+      currentDate: new Date()
     }
   },
 
@@ -82,8 +147,14 @@ export default {
       })
 
       try {
-        // 请求提交
-        await updateUserPhoto(this.file.files[0])
+        const photo = this.file.files[0]
+        if (photo) {
+          // 更新用户头像
+          await updateUserPhoto(this.file.files[0])
+        }
+
+        // 更新普通信息
+        await updateUserProfile(this.user)
 
         // 关闭弹窗 loading
         toast.clear()
@@ -91,12 +162,37 @@ export default {
         // 提示成功
         this.$toast.success('更新成功')
       } catch (err) {
-        console.log(err)
+        // if (err.response && err.response.status)
         // 关闭弹窗 loading
         toast.clear()
-        // 提示失败
-        this.$toast.fail('更新失败')
+
+        if (err.response && err.response.status === 409) {
+          this.$toast.fail('昵称已存在')
+        } else {
+          // 提示失败
+          this.$toast.fail('更新失败')
+        }
       }
+    },
+
+    onUserNameInput (value) {
+      this.inputUserName = value
+    },
+
+    onGenderSelect (item) {
+      // 修改数据
+      this.user.gender = item.value
+
+      // 关闭弹窗
+      this.isEditGenderShow = false
+    },
+
+    onDatetimeConfirm (value) {
+      // 修改数据
+      this.user.birthday = formatDate(value)
+
+      // 关闭弹层
+      this.isEditBirthdayShow = false
     }
   }
 }
