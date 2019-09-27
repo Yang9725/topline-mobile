@@ -9,9 +9,28 @@
     <!-- /关闭按钮 -->
 
     <!-- 当前评论 -->
+    <van-cell>
+      <van-image
+        slot="icon"
+        round
+        width="30"
+        height="30"
+        style="margin-right: 10px;"
+        :src="comment.aut_photo"
+      />
+      <span style="color: #466b9d;" slot="title">{{ comment.aut_name }}</span>
+      <div slot="label">
+        <p style="color: #363636;">{{ comment.content }}</p>
+        <p>
+          <span style="margin-right: 10px;">{{ comment.pubdate | relativeTime }}</span>
+        </p>
+      </div>
+      <van-icon slot="right-icon" name="like-o" />
+    </van-cell>
     <!-- /当前评论 -->
 
     <!-- 评论的回复列表 -->
+    <van-cell title="全部评论" />
     <van-list
       v-model="loading"
       :finished="finished"
@@ -78,6 +97,10 @@ export default {
       commentText: '', // 用户输入的评论内容
       totalReplyCount: 0 // 总回复数量
     }
+  },
+
+  created () {
+    console.log('reply-list created')
   },
 
   methods: {

@@ -60,7 +60,13 @@
       :style="{ height: '95%' }"
       round
     >
+      <!--
+        v-if 条件渲染
+          true 渲染元素
+          false 不渲染（销毁）
+       -->
       <reply-list
+        v-if="isReplyShow"
         :comment="currentComment"
         :article-id="articleId"
         @close="isReplyShow = false"
